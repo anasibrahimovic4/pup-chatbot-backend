@@ -159,5 +159,7 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: "Napaka strežnika." });
   }
 });
-
+app.get("/status", (req, res) => {
+  res.json({ hasKnowledge: !!knowledgeText, chars: knowledgeText.length });
+});
 app.listen(process.env.PORT || 3000, () => console.log("Server running"));
