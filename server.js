@@ -10,7 +10,70 @@ app.use(express.json({ limit: "2mb" }));
 const upload = multer({ storage: multer.memoryStorage() });
 
 let knowledgeText = "";
+app.get("/widget", (req, res) => {
+  res.send(`
+<!doctype html>
+<html lang="sl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PUP Chatbot</title>
+</head>
+<body style="font-family:system-ui,Arial;margin:0;padding:12px;background:#f6f6f6">
+  <div style="background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px">
+    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje (PDF)</h3>
+    <div id="chatbox" style="border:1px solid #ccc;border-radius:10px;padding:10px;height:280px;overflow:auto;background:#fff"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input id="msg" style="flex:1;padding:10px;border:1px solid #ccc;border-radius:10px" placeholder="Vprašaj o PUP Velenje..." />
+      <button id="send" style="padding:10px 14px;border:1px solid #ccc;border-radius:10px;cursor:pointer">Pošlji</button>
+    </div>
+    <small style="color:#666">Če odgovora ni v PDF: "Tega v dokumentu ne najdem."</small>
+  </div>
 
+<script>
+const API = "/chat";
+const chatbox = document.getElementById("chatbox");
+const msg = document.getElementById("msg");
+const send = document.getElementById("send");
+
+function add(who, text){
+  const div = document.createElement("div");
+  div.style.margin = "8px 0";
+  div.innerHTML = "<b>" + who + ":</b> " + text;
+  chatbox.appendChild(div);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+add("Bot", "Živjo! Vprašaj me karkoli glede na PDF dokument.");
+
+send.addEventListener("click", async () => {
+  const text = msg.value.trim();
+  if(!text) return;
+  add("Ti", text);
+  msg.value = "";
+
+  add("Bot", "...");
+  const last = chatbox.lastChild;
+
+  try{
+    const r = await fetch(API, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ message: text })
+    });
+    const data = await r.json();
+    last.remove();
+    add("Bot", data.reply || data.error || "Napaka");
+  } catch(e){
+    last.remove();
+    add("Bot", "Napaka pri povezavi do strežnika.");
+  }
+});
+</script>
+</body>
+</html>
+  `);
+});
 // Root
 app.get("/", (req, res) => {
   res.send("PUP Chatbot backend running");
