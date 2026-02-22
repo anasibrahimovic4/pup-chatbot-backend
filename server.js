@@ -120,9 +120,7 @@ app.post("/init/pdf", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "Napaka pri branju PDF." });
   }
 });
-app.get("/status", (req, res) => {
-  res.json({ hasKnowledge: !!knowledgeText, chars: knowledgeText.length });
-});
+
 // Chat
 app.post("/chat", async (req, res) => {
   try {
