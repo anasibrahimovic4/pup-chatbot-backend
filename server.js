@@ -41,7 +41,7 @@ app.get("/upload", (req, res) => {
 </head>
 <body style="font-family:system-ui,Arial;margin:0;padding:12px;background:#f6f6f6">
   <div style="background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px">
-    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje (PDF)</h3>
+    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje </h3>
     <div id="chatbox" style="border:1px solid #ccc;border-radius:10px;padding:10px;height:280px;overflow:auto;background:#fff"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <input id="msg" style="flex:1;padding:10px;border:1px solid #ccc;border-radius:10px" placeholder="Vprašaj o PUP Velenje..." />
@@ -64,7 +64,7 @@ function add(who, text){
   chatbox.scrollTop = chatbox.scrollHeight;
 }
 
-add("Bot", "Živjo! Vprašaj me karkoli glede na PDF dokument.");
+add("Bot", "Živjo! Postavi mi vprašanje.");
 
 send.addEventListener("click", async () => {
   const text = msg.value.trim();
