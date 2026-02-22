@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import pdf from "pdf-parse";
+import fs from "fs";
 
 const app = express();
 app.use(cors());
@@ -10,6 +11,15 @@ app.use(express.json({ limit: "2mb" }));
 const upload = multer({ storage: multer.memoryStorage() });
 
 let knowledgeText = "";
+// Preberi PDF ob zagonu strežnika
+try {
+  const dataBuffer = fs.readFileSync("./pup");
+  const parsed = await pdf(dataBuffer);
+  knowledgeText = parsed.text;
+  console.log("PDF samodejno naložen.");
+} catch (err) {
+  console.log("PDF ni bil najden ob zagonu.");
+}
 
 // Root
 app.get("/", (req, res) => {
