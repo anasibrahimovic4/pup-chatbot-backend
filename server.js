@@ -10,14 +10,13 @@ app.use(express.json({ limit: "2mb" }));
 const upload = multer({ storage: multer.memoryStorage() });
 
 let knowledgeText = "";
-let knowledgeName = "";
 
 // Root
 app.get("/", (req, res) => {
   res.send("PUP Chatbot backend running");
 });
 
-// Health check
+// Health
 app.get("/health", (req, res) => {
   res.send("ok");
 });
@@ -25,19 +24,18 @@ app.get("/health", (req, res) => {
 // PDF inicializacija
 app.post("/init/pdf", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "Manjka PDF datoteka." });
+    if (!req.file) return res.status(400).json({ error: "Manjka PDF." });
 
     const parsed = await pdf(req.file.buffer);
     knowledgeText = parsed.text;
-    knowledgeName = req.file.originalname;
 
-    res.json({ ok: true, file: knowledgeName });
-  } catch (err) {
+    res.json({ ok: true, message: "PDF uspešno naložen." });
+  } catch {
     res.status(500).json({ error: "Napaka pri branju PDF." });
   }
 });
 
-// Chat endpoint
+// Chat
 app.post("/chat", async (req, res) => {
   try {
     const message = req.body.message;
@@ -58,7 +56,7 @@ app.post("/chat", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "Odgovarjaj v slovenščini in samo na podlagi PDF besedila. Če odgovora ni v dokumentu, napiši: 'Tega v dokumentu ne najdem.'"
+            content: "Odgovarjaj v slovenščini in samo na podlagi podanega besedila. Če odgovora ni v dokumentu, napiši: 'Tega v dokumentu ne najdem.'"
           },
           {
             role: "user",
@@ -69,11 +67,9 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await response.json();
-    const reply = data.choices[0].message.content;
+    res.json({ reply: data.choices[0].message.content });
 
-    res.json({ reply });
-
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Napaka strežnika." });
   }
 });
