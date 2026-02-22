@@ -6,31 +6,32 @@ import fs from "fs";
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "5mb" }));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 let knowledgeText = "";
-// Preberi PDF ob zagonu strežnika
-try {
-  const dataBuffer = fs.readFileSync("./pup");
-  const parsed = await pdf(dataBuffer);
-  knowledgeText = parsed.text;
-  console.log("PDF samodejno naložen.");
-} catch (err) {
-  console.log("PDF ni bil najden ob zagonu.");
+
+// 1) Preberi PDF ob zagonu (trajna inicializacija)
+async function loadPdfAtStartup() {
+  try {
+    const dataBuffer = fs.readFileSync("./znanje.pdf"); // <-- TO MORA BITI PRAVILNO IME
+    const parsed = await pdf(dataBuffer);
+    knowledgeText = (parsed.text || "").trim();
+    console.log("PDF samodejno naložen. Znakov:", knowledgeText.length);
+  } catch (err) {
+    console.log("PDF ni bil najden ob zagonu (znanje.pdf). Lahko ga naložiš preko /upload.");
+  }
 }
+await loadPdfAtStartup();
 
 // Root
-app.get("/", (req, res) => {
-  res.send("PUP Chatbot backend running");
-});
+app.get("/", (req, res) => res.send("PUP Chatbot backend running"));
 
 // Health
-app.get("/health", (req, res) => {
-  res.send("ok");
-});
+app.get("/health", (req, res) => res.send("ok"));
 
+// Upload stran (če želiš še vedno imeti možnost ročnega nalaganja)
 app.get("/upload", (req, res) => {
   res.send(`
     <h2>Naloži PDF dokument</h2>
@@ -39,8 +40,10 @@ app.get("/upload", (req, res) => {
       <button type="submit">Naloži PDF</button>
     </form>
   `);
+});
 
-  app.get("/widget", (req, res) => {
+// Widget stran (MORA BITI ZUNAJ /upload!)
+app.get("/widget", (req, res) => {
   res.send(`
 <!doctype html>
 <html lang="sl">
@@ -51,7 +54,7 @@ app.get("/upload", (req, res) => {
 </head>
 <body style="font-family:system-ui,Arial;margin:0;padding:12px;background:#f6f6f6">
   <div style="background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px">
-    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje </h3>
+    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje (PDF)</h3>
     <div id="chatbox" style="border:1px solid #ccc;border-radius:10px;padding:10px;height:280px;overflow:auto;background:#fff"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <input id="msg" style="flex:1;padding:10px;border:1px solid #ccc;border-radius:10px" placeholder="Vprašaj o PUP Velenje..." />
@@ -73,7 +76,6 @@ function add(who, text){
   chatbox.appendChild(div);
   chatbox.scrollTop = chatbox.scrollHeight;
 }
-
 add("Bot", "Živjo! Postavi mi vprašanje.");
 
 send.addEventListener("click", async () => {
@@ -104,17 +106,16 @@ send.addEventListener("click", async () => {
 </html>
   `);
 });
-});
 
-// PDF inicializacija
+// PDF inicializacija (ročno nalaganje; osveži knowledgeText)
 app.post("/init/pdf", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "Manjka PDF." });
 
     const parsed = await pdf(req.file.buffer);
-    knowledgeText = parsed.text;
+    knowledgeText = (parsed.text || "").trim();
 
-    res.json({ ok: true, message: "PDF uspešno naložen." });
+    res.json({ ok: true, message: "PDF uspešno naložen.", chars: knowledgeText.length });
   } catch {
     res.status(500).json({ error: "Napaka pri branju PDF." });
   }
@@ -123,10 +124,10 @@ app.post("/init/pdf", upload.single("file"), async (req, res) => {
 // Chat
 app.post("/chat", async (req, res) => {
   try {
-    const message = req.body.message;
+    const message = String(req.body?.message || "").trim();
 
     if (!knowledgeText) {
-      return res.status(400).json({ error: "Najprej naloži PDF." });
+      return res.status(400).json({ error: "Najprej naloži PDF (/upload ali znanje.pdf v repo)." });
     }
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -141,7 +142,8 @@ app.post("/chat", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "Odgovarjaj v slovenščini in samo na podlagi podanega besedila. Če odgovora ni v dokumentu, napiši: 'Tega v dokumentu ne najdem.'"
+            content:
+              "Odgovarjaj v slovenščini in samo na podlagi podanega besedila. Če odgovora ni v dokumentu, napiši: 'Tega v dokumentu ne najdem.'"
           },
           {
             role: "user",
@@ -152,13 +154,10 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await response.json();
-    res.json({ reply: data.choices[0].message.content });
-
+    res.json({ reply: data?.choices?.[0]?.message?.content || "Napaka pri odgovoru." });
   } catch {
     res.status(500).json({ error: "Napaka strežnika." });
   }
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server running");
-});
+app.listen(process.env.PORT || 3000, () => console.log("Server running"));
