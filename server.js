@@ -10,7 +10,27 @@ app.use(express.json({ limit: "2mb" }));
 const upload = multer({ storage: multer.memoryStorage() });
 
 let knowledgeText = "";
-app.get("/widget", (req, res) => {
+
+// Root
+app.get("/", (req, res) => {
+  res.send("PUP Chatbot backend running");
+});
+
+// Health
+app.get("/health", (req, res) => {
+  res.send("ok");
+});
+
+app.get("/upload", (req, res) => {
+  res.send(`
+    <h2>Naloži PDF dokument</h2>
+    <form action="/init/pdf" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept="application/pdf" />
+      <button type="submit">Naloži PDF</button>
+    </form>
+  `);
+
+  app.get("/widget", (req, res) => {
   res.send(`
 <!doctype html>
 <html lang="sl">
@@ -74,24 +94,6 @@ send.addEventListener("click", async () => {
 </html>
   `);
 });
-// Root
-app.get("/", (req, res) => {
-  res.send("PUP Chatbot backend running");
-});
-
-// Health
-app.get("/health", (req, res) => {
-  res.send("ok");
-});
-
-app.get("/upload", (req, res) => {
-  res.send(`
-    <h2>Naloži PDF dokument</h2>
-    <form action="/init/pdf" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" accept="application/pdf" />
-      <button type="submit">Naloži PDF</button>
-    </form>
-  `);
 });
 
 // PDF inicializacija
