@@ -15,7 +15,7 @@ let knowledgeText = "";
 // 1) Preberi PDF ob zagonu (trajna inicializacija)
 async function loadPdfAtStartup() {
   try {
-    const dataBuffer = fs.readFileSync("./pup"); // <-- TO MORA BITI PRAVILNO IME
+    const dataBuffer = fs.readFileSync("./pdf"); // <-- TO MORA BITI PRAVILNO IME
     const parsed = await pdf(dataBuffer);
     knowledgeText = (parsed.text || "").trim();
     console.log("PDF samodejno naložen. Znakov:", knowledgeText.length);
