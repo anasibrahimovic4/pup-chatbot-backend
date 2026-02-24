@@ -120,6 +120,42 @@ app.post("/init/pdf", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "Napaka pri branju PDF." });
   }
 });
+app.get("/embed", (req, res) => {
+  res.send(`
+<!doctype html>
+<html lang="sl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chatbot nalaganje</title>
+</head>
+<body style="font-family:system-ui,Arial;margin:0;padding:12px;background:#f6f6f6">
+  <div id="loading" style="padding:12px;border:1px solid #ccc;border-radius:12px;background:#fff;">
+    Chatbot se zaganja… prosim počakaj nekaj sekund.
+  </div>
+
+  <script>
+  (async () => {
+    // pingamo /health na isti domeni (Render), zato deluje zanesljivo
+    for (let i = 0; i < 15; i++) {
+      try {
+        const r = await fetch("/health", { cache: "no-store" });
+        const t = (await r.text()).trim();
+        if (t === "ok") {
+          window.location.href = "/widget";
+          return;
+        }
+      } catch (e) {}
+      await new Promise(res => setTimeout(res, 2000));
+    }
+    document.getElementById("loading").innerHTML =
+      "Chatbot se nalaga dlje kot običajno. Osveži stran čez nekaj sekund.";
+  })();
+  </script>
+</body>
+</html>
+  `);
+});
 
 // Chat
 app.post("/chat", async (req, res) => {
