@@ -193,26 +193,39 @@ app.get("/embed", (req, res) => {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Chatbot nalaganje</title>
 </head>
-<body style="font-family:system-ui,Arial;margin:0;padding:12px;background:#f6f6f6">
-  <div id="loading" style="padding:12px;border:1px solid #ccc;border-radius:12px;background:#fff;">
-    Chatbot se zaganja… prosim počakaj nekaj sekund.
+<body style="font-family:system-ui,Arial;margin:0;background:#0b1220;color:#e5e7eb">
+  <div style="max-width:720px;margin:0 auto;padding:18px">
+    <div style="background:#111a2e;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:14px;height:14px;border-radius:999px;border:2px solid rgba(229,231,235,.35);
+                    border-top-color:#e5e7eb;animation:spin 1s linear infinite"></div>
+        <div>
+          <div style="font-weight:700">Chatbot PUP Velenje</div>
+          <div style="opacity:.8;font-size:14px">Zaganjam storitev… prosim počakaj.</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;opacity:.75;font-size:13px">
+        Ko bo pripravljeno, se bo stran samodejno preusmerila.
+      </div>
+    </div>
   </div>
 
-  <script>
-  (async () => {
-    // Ko je backend "živ", preusmeri na /widget
-    for (let i = 0; i < 20; i++) {
-      try {
-        const r = await fetch("/health", { cache: "no-store" });
-        const t = (await r.text()).trim();
-        if (t === "ok") { window.location.href = "/widget"; return; }
-      } catch (e) {}
-      await new Promise(res => setTimeout(res, 1500));
-    }
-    document.getElementById("loading").innerHTML =
-      "Chatbot se nalaga dlje kot običajno. Poskusi osvežiti stran čez nekaj sekund.";
-  })();
-  </script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(async () => {
+  for (let i = 0; i < 20; i++) {
+    try {
+      const r = await fetch("/health", { cache: "no-store" });
+      const t = (await r.text()).trim();
+      if (t === "ok") { window.location.href = "/widget"; return; }
+    } catch (e) {}
+    await new Promise(res => setTimeout(res, 1500));
+  }
+})();
+</script>
 </body>
 </html>
   `);
