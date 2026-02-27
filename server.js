@@ -120,7 +120,7 @@ app.get("/widget", (req, res) => {
 </head>
 <body style="font-family:system-ui,Arial;margin:0;padding:12px;background:#f6f6f6">
   <div style="background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px">
-    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje (PDF)</h3>
+    <h3 style="margin:0 0 10px 0">Chatbot PUP Velenje</h3>
     <div id="chatbox" style="border:1px solid #ccc;border-radius:10px;padding:10px;height:280px;overflow:auto;background:#fff"></div>
 
     <div style="display:flex;gap:8px;margin-top:10px">
@@ -131,7 +131,7 @@ app.get("/widget", (req, res) => {
       </button>
     </div>
 
-    <small style="color:#666">Če odgovora ni v PDF: "Tega v dokumentu ne najdem."</small>
+    <small style="color:#666">"</small>
   </div>
 
 <script>
@@ -148,7 +148,7 @@ function add(who, text){
   chatbox.scrollTop = chatbox.scrollHeight;
 }
 
-add("Bot", "Živjo! Postavi mi vprašanje o PUP Velenje (na podlagi PDF).");
+add("Bot", "Živjo! Postavi mi vprašanje o PUP Velenje.");
 
 send.addEventListener("click", async () => {
   const text = msg.value.trim();
